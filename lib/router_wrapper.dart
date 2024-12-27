@@ -35,7 +35,6 @@ Widget routerWrapper(
           ),
           child: Theme(
             data: Theme.of(context).copyWith(
-              scaffoldBackgroundColor: Colors.white.withAlpha(200),
               visualDensity: VisualDensity.compact,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               buttonTheme: ButtonTheme.of(context).copyWith(
@@ -90,7 +89,6 @@ class _IADPanel extends StatelessWidget {
           length: features.length,
           initialIndex: 0,
           child: Scaffold(
-            backgroundColor: Colors.white.withAlpha(200),
             appBar: TabBar(
               isScrollable: true,
               tabAlignment: TabAlignment.start,
