@@ -31,44 +31,55 @@ class _IADWindowState extends State<IADWindow>
   late final AnimationController _animationCtrl = AnimationController(
     vsync: this,
     duration: Duration(milliseconds: 150),
+    value: 1,
   );
+
+  @override
+  void initState() {
+    context.read<IADState>().addListener(listener);
+    super.initState();
+  }
 
   @override
   bool get wantKeepAlive => true;
 
   @override
   void dispose() {
+    context.read<IADState>().removeListener(listener);
     _animationCtrl.dispose();
     super.dispose();
+  }
+
+  void listener() {
+    final isOpened = context.read<IADState>().isOpened;
+
+    if (!isOpened) {
+      _animationCtrl.forward();
+    } else {
+      _animationCtrl.reverse();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     if (!_inited) {
       _inited = true;
-      _windowWidth = MediaQuery.sizeOf(context).width;
+      _windowWidth = MediaQuery.sizeOf(context).width - 40;
       _windowHeight = MediaQuery.sizeOf(context).height / 2;
       _offset = Offset(
-          0,
+          20,
           MediaQuery.sizeOf(context).height / 2 -
               MediaQuery.viewPaddingOf(context).bottom);
     }
 
     super.build(context);
-
-    final isOpen = context.select((IADState state) => state.isOpened);
-
-    if (!isOpen) {
-      _animationCtrl.forward();
-    } else {
-      _animationCtrl.reverse();
-    }
+    final isOpened = context.select((IADState state) => state.isOpened);
 
     return Positioned(
       left: _offset.dx,
       top: _offset.dy,
       child: IgnorePointer(
-        ignoring: !isOpen,
+        ignoring: !isOpened,
         child: Material(
           color: Colors.transparent,
           textStyle: Theme.of(context).textTheme.bodySmall,
@@ -95,7 +106,6 @@ class _IADWindowState extends State<IADWindow>
                 Container(
                   width: _windowWidth,
                   height: _windowHeight,
-                  color: Colors.white,
                   padding: const EdgeInsets.only(top: 20),
                   child: widget.child,
                 ),
@@ -194,9 +204,16 @@ class _IADWindowState extends State<IADWindow>
         child: MouseRegion(
           cursor: SystemMouseCursors.resizeDownRight,
           child: Container(
-            width: 10,
-            height: 10,
-            color: Colors.grey,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(4)),
+            ),
+            width: 14,
+            height: 14,
+            child: Transform.rotate(
+              angle: -45,
+              child: Icon(Icons.expand_more_rounded, size: 12),
+            ),
           ),
         ),
       ),

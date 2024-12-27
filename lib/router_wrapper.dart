@@ -33,16 +33,44 @@ Widget routerWrapper(
             systemGestureInsets: const EdgeInsets.all(0),
             padding: const EdgeInsets.all(0),
           ),
-          child: HeroControllerScope(
-            controller: HeroController(createRectTween: (begin, end) {
-              return MaterialRectArcTween(begin: begin, end: end);
-            }),
-            child: Navigator(
-              onGenerateRoute: (settings) {
-                return MaterialPageRoute(builder: (context) {
-                  return _IADPanel();
-                });
-              },
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              scaffoldBackgroundColor: Colors.white.withAlpha(200),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              buttonTheme: ButtonTheme.of(context).copyWith(
+                minWidth: 0,
+                padding: const EdgeInsets.all(0),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(0, 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+              ),
+              appBarTheme: AppBarTheme.of(context).copyWith(
+                toolbarHeight: 40,
+                titleSpacing: 0,
+                iconTheme: IconThemeData(size: 18),
+              ),
+              tabBarTheme: TabBarTheme.of(context).copyWith(
+                labelPadding: const EdgeInsets.all(0),
+              ),
+            ),
+            child: HeroControllerScope(
+              controller: HeroController(createRectTween: (begin, end) {
+                return MaterialRectArcTween(begin: begin, end: end);
+              }),
+              child: Navigator(
+                onGenerateRoute: (settings) {
+                  return MaterialPageRoute(
+                    builder: (context) {
+                      return _IADPanel();
+                    },
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -62,11 +90,10 @@ class _IADPanel extends StatelessWidget {
           length: features.length,
           initialIndex: 0,
           child: Scaffold(
+            backgroundColor: Colors.white.withAlpha(200),
             appBar: TabBar(
               isScrollable: true,
-              padding: const EdgeInsets.all(0),
-              labelPadding: const EdgeInsets.all(0),
-              indicatorPadding: const EdgeInsets.all(0),
+              tabAlignment: TabAlignment.start,
               tabs: features
                   .map((feature) => Tab(
                         icon: feature.icon,

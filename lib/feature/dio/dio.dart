@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:in_app_devtools/abstract/feature.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -41,7 +42,7 @@ class _Response {
   });
 }
 
-const ColorMap = {
+const kColorMap = {
   'GET': Colors.green,
   'POST': Colors.blue,
   'PUT': Colors.orange,
@@ -56,10 +57,11 @@ typedef Requests = SplayTreeMap<int, (_Request, _Response?)>;
 class DioFeature extends IADFeature implements Interceptor {
   final Requests _requests = SplayTreeMap((a, b) => b.compareTo(a));
   final Dio dio;
+  final int maxRequests;
   int _id = 0;
   bool get iadEnabled => state.isEnabled;
 
-  DioFeature({required this.dio})
+  DioFeature({required this.dio, this.maxRequests = 1000})
       : super(
           title: 'Dio',
           icon: const Icon(Icons.traffic_outlined),
@@ -70,6 +72,9 @@ class DioFeature extends IADFeature implements Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (!iadEnabled) return;
+    if (_requests.length >= maxRequests) {
+      _requests.remove(_requests.lastKey());
+    }
     options.extra['iad_id'] = _id++;
     handler.next(options);
     _requests[options.extra['iad_id'] as int] = (
@@ -88,7 +93,11 @@ class DioFeature extends IADFeature implements Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     final id = response.requestOptions.extra['iad_id'] as int;
-    final request = _requests[id]!.$1;
+    final request = _requests[id]?.$1;
+    handler.next(response);
+    if (request == null) {
+      return;
+    }
     final response0 = _Response(
       statusCode: response.statusCode ?? -1,
       headers: response.headers.map,
@@ -97,7 +106,6 @@ class DioFeature extends IADFeature implements Interceptor {
       timestamp: DateTime.timestamp(),
       duration: request.timestamp.difference(DateTime.timestamp()),
     );
-    handler.next(response);
     _requests[id] = (request, response0);
     notifyListeners();
   }
@@ -105,7 +113,11 @@ class DioFeature extends IADFeature implements Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final id = err.requestOptions.extra['iad_id'] as int;
-    final request = _requests[id]!.$1;
+    final request = _requests[id]?.$1;
+    handler.next(err);
+    if (request == null) {
+      return;
+    }
     final response0 = _Response(
       statusCode: err.response?.statusCode ?? -1,
       headers: err.response?.headers.map ?? {},
@@ -115,8 +127,12 @@ class DioFeature extends IADFeature implements Interceptor {
       timestamp: DateTime.timestamp(),
       duration: request.timestamp.difference(DateTime.timestamp()),
     );
-    handler.next(err);
     _requests[id] = (request, response0);
+    notifyListeners();
+  }
+
+  void clear() {
+    _requests.clear();
     notifyListeners();
   }
 
@@ -132,60 +148,74 @@ class DioFeature extends IADFeature implements Interceptor {
 class _DioFeature extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Selector<DioFeature, Requests>(selector: (context, state) {
-      return state._requests;
-    }, shouldRebuild: (prev, curr) {
-      return true;
-    }, builder: (context, requests, child) {
-      return ListView.separated(
-        itemBuilder: (context, index) {
-          final (request, response) = requests.values.elementAt(index);
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-            minTileHeight: 40,
-            minVerticalPadding: 4,
-            title: Row(
-              spacing: 8,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _RequestMethodIndicator(method: request.method, textSize: 11),
-                Text(request.uri.path.isNotEmpty ? request.uri.path : '/'),
-              ],
-            ),
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return _DioDetails(request: request, response: response);
-              }));
-            },
-            subtitle: Text(
-              DateFormat('yyyy/MM/dd hh:mm:ss:S')
-                  .format(request.timestamp.toLocal()),
-              style: TextStyle(fontSize: 12),
-              overflow: TextOverflow.ellipsis,
-            ),
-            trailing: response == null
-                ? SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ))
-                : Text(
-                    response.statusCode.toString(),
-                    style: TextStyle(
-                      color: _statusColor(response.statusCode),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
+    return Scaffold(
+      floatingActionButton: FloatingActionButton.small(
+        onPressed: () {
+          context.read<DioFeature>().clear();
+        },
+        child: Icon(Icons.delete_forever_outlined),
+      ),
+      body: Selector<DioFeature, Requests>(selector: (context, state) {
+        return state._requests;
+      }, shouldRebuild: (prev, curr) {
+        return true;
+      }, builder: (context, requests, child) {
+        if (requests.isEmpty) {
+          return Center(
+            child: Text('No requests',
+                style: Theme.of(context).textTheme.bodySmall),
           );
-        },
-        separatorBuilder: (context, index) {
-          return const Divider(height: 1);
-        },
-        itemCount: requests.length,
-      );
-    });
+        }
+        return ListView.separated(
+          itemBuilder: (context, index) {
+            final (request, response) = requests.values.elementAt(index);
+            return ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+              minTileHeight: 40,
+              minVerticalPadding: 4,
+              title: Row(
+                spacing: 8,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _RequestMethodIndicator(method: request.method, textSize: 11),
+                  Text(request.uri.path.isNotEmpty ? request.uri.path : '/'),
+                ],
+              ),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return _DioDetails(request: request, response: response);
+                }));
+              },
+              subtitle: Text(
+                DateFormat('yyyy/MM/dd hh:mm:ss:S')
+                    .format(request.timestamp.toLocal()),
+                style: TextStyle(fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: response == null
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ))
+                  : Text(
+                      response.statusCode.toString(),
+                      style: TextStyle(
+                        color: _statusColor(response.statusCode),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+            );
+          },
+          separatorBuilder: (context, index) {
+            return const Divider(height: 1);
+          },
+          itemCount: requests.length,
+        );
+      }),
+    );
   }
 }
 
@@ -216,21 +246,23 @@ class _DioDetails extends StatelessWidget {
               Text(request.uri.host, style: TextStyle(fontSize: 12)),
             ],
           ),
-          bottom: TabBar(
-            textScaler: TextScaler.linear(0.7),
-            tabs: [
-              Tab(
-                text: 'Request',
-                icon: Icon(Icons.send, size: 16),
-                height: 40,
-              ),
-              Tab(
-                text: 'Response',
-                icon: Icon(Icons.reply, size: 16),
-                height: 40,
-              ),
-            ],
-          ),
+          bottom: PreferredSize(
+              preferredSize: Size(double.maxFinite, 32),
+              child: TabBar(
+                textScaler: TextScaler.linear(0.65),
+                tabs: [
+                  Tab(
+                    text: 'Request',
+                    icon: Icon(Icons.send, size: 14),
+                    height: 32,
+                  ),
+                  Tab(
+                    text: 'Response',
+                    icon: Icon(Icons.reply, size: 14),
+                    height: 32,
+                  ),
+                ],
+              )),
         ),
         body: TabBarView(children: [
           SelectableRegion(
@@ -250,9 +282,32 @@ class _DioDetails extends StatelessWidget {
                   child: _headersRender(context, request.headers),
                 ),
                 const Divider(),
-                Text(
-                  'Request Body',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Row(
+                  children: [
+                    Text(
+                      'Request Body',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Spacer(),
+                    ElevatedButton(
+                      onPressed: () {
+                        Clipboard.setData(
+                          ClipboardData(
+                            text: request.data.toString(),
+                          ),
+                        ).then((_) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Copied to clipboard'),
+                              ),
+                            );
+                          }
+                        });
+                      },
+                      child: Text("Copy"),
+                    )
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.all(4.0),
@@ -274,7 +329,7 @@ class _DioDetails extends StatelessWidget {
                 Text("Message: ${response?.message ?? 'N/A'}"),
                 const Divider(),
                 Text(
-                  'Request Headers',
+                  'Response Headers',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Padding(
@@ -282,9 +337,32 @@ class _DioDetails extends StatelessWidget {
                   child: _headersRender(context, response?.headers ?? {}),
                 ),
                 const Divider(),
-                Text(
-                  'Request Body',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Row(
+                  children: [
+                    Text(
+                      'Response Body',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Spacer(),
+                    ElevatedButton(
+                      onPressed: () {
+                        Clipboard.setData(
+                          ClipboardData(
+                            text: response?.data.toString() ?? '',
+                          ),
+                        ).then((_) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Copied to clipboard'),
+                              ),
+                            );
+                          }
+                        });
+                      },
+                      child: Text("Copy"),
+                    )
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.all(4.0),
@@ -425,7 +503,7 @@ class _RequestMethodIndicator extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: ColorMap[method],
+        color: kColorMap[method],
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(method,

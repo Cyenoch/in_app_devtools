@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +57,7 @@ class MainApp extends StatelessWidget {
               ),
               ElevatedButton(
                   onPressed: () {
-                    print('log!!!\nlog!!!!!!');
+                    print('log!!!\nlog!!!!!! ${Random().nextInt(100)}');
                   },
                   child: Text('Log')),
             ],

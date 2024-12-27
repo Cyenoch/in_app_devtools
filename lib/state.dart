@@ -28,11 +28,9 @@ class IADState extends ChangeNotifier {
   }
 
   IADState({
-    bool? initialOpened,
     bool? initialEnabled,
     List<IADFeature> initialFeatures = const [],
-  })  : _isOpened = initialOpened ?? false,
-        _isEnabled = initialEnabled ?? false,
+  })  : _isEnabled = initialEnabled ?? false,
         _features = initialFeatures {
     for (final item in initialFeatures) {
       item.state = this;
