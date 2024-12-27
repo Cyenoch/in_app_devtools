@@ -12,6 +12,4 @@ abstract class IADFeature extends ChangeNotifier {
   });
 
   Widget build(BuildContext context);
-
-  void onIADEnabledToggle(bool enabled) {}
 }

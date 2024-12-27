@@ -42,9 +42,6 @@ class IADState extends ChangeNotifier {
   void toggle() {
     isOpened = !isOpened;
     notifyListeners();
-    for (var element in features) {
-      element.onIADEnabledToggle(isOpened);
-    }
   }
 
   static IADState of(BuildContext context) {
