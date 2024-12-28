@@ -71,7 +71,10 @@ class DioFeature extends IADFeature implements Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (!iadEnabled) return;
+    if (!iadEnabled) {
+      handler.next(options);
+      return;
+    }
     if (_requests.length >= maxRequests) {
       _requests.remove(_requests.lastKey());
     }

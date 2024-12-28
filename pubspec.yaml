@@ -1,6 +1,6 @@
 name: in_app_devtools
 description: "In app devtools."
-version: 0.0.2
+version: 0.1.0
 
 environment:
   sdk: ^3.6.0
