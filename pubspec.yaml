@@ -1,7 +1,7 @@
 name: in_app_devtools
 description: "Flutter in app devtools."
 version: 0.1.0
-homepage: bingzi.dev
+homepage: https://bingzi.dev
 repository: https://github.com/Cyenoch/in_app_devtools
 issue_tracker: https://github.com/Cyenoch/in_app_devtools/issues
 platforms:
