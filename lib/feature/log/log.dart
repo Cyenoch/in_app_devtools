@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:in_app_devtools/abstract/feature.dart';
+import 'package:in_app_devtools/state.dart';
 import 'package:provider/provider.dart';
 
 class LogFeature extends IADFeature {
@@ -35,6 +36,9 @@ class LogFeature extends IADFeature {
       child: const _Log(),
     );
   }
+
+  @override
+  void init(IADState state) {}
 }
 
 class _Log extends StatefulWidget {

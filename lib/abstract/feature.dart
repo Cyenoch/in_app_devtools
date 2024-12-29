@@ -11,5 +11,7 @@ abstract class IADFeature extends ChangeNotifier {
     required this.icon,
   });
 
+  void init(IADState state);
+
   Widget build(BuildContext context);
 }

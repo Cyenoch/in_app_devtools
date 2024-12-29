@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:in_app_devtools/abstract/feature.dart';
+import 'package:in_app_devtools/state.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -70,16 +71,19 @@ class DioFeature extends IADFeature implements Interceptor {
   }
 
   @override
+  void init(IADState state) {}
+
+  @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (!iadEnabled) {
       handler.next(options);
       return;
     }
+    options.extra['iad_id'] = _id++;
+    handler.next(options);
     if (_requests.length >= maxRequests) {
       _requests.remove(_requests.lastKey());
     }
-    options.extra['iad_id'] = _id++;
-    handler.next(options);
     _requests[options.extra['iad_id'] as int] = (
       _Request(
         uri: options.uri,
@@ -95,9 +99,9 @@ class DioFeature extends IADFeature implements Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
+    handler.next(response);
     final id = response.requestOptions.extra['iad_id'] as int;
     final request = _requests[id]?.$1;
-    handler.next(response);
     if (request == null) {
       return;
     }
@@ -115,9 +119,9 @@ class DioFeature extends IADFeature implements Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    handler.next(err);
     final id = err.requestOptions.extra['iad_id'] as int;
     final request = _requests[id]?.$1;
-    handler.next(err);
     if (request == null) {
       return;
     }

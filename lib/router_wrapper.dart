@@ -83,7 +83,7 @@ class _IADPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Selector<IADState, List<IADFeature>>(
+    return Selector<IADState, Iterable<IADFeature>>(
       builder: (context, features, child) {
         return DefaultTabController(
           length: features.length,
