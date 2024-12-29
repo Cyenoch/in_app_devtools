@@ -43,7 +43,9 @@ class MainApp extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  dio.get('https://www.baidu.com').then((value) {});
+                  dio.get('https://www.baidu.com').then((value) {
+                    print("?? $value");
+                  });
 
                   dio.post('https://www.baidu.com',
                       data: {'test': 'map'}).then((value) {});

@@ -100,7 +100,8 @@ class DioFeature extends IADFeature implements Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     handler.next(response);
-    final id = response.requestOptions.extra['iad_id'] as int;
+    final id = response.requestOptions.extra['iad_id'] as int?;
+    if (id == null) return;
     final request = _requests[id]?.$1;
     if (request == null) {
       return;
@@ -120,7 +121,8 @@ class DioFeature extends IADFeature implements Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     handler.next(err);
-    final id = err.requestOptions.extra['iad_id'] as int;
+    final id = err.requestOptions.extra['iad_id'] as int?;
+    if (id == null) return;
     final request = _requests[id]?.$1;
     if (request == null) {
       return;
