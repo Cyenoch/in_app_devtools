@@ -187,7 +187,13 @@ class _DioFeature extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _RequestMethodIndicator(method: request.method, textSize: 11),
-                  Text(request.uri.path.isNotEmpty ? request.uri.path : '/'),
+                  Expanded(
+                    child: Text(
+                      request.uri.path.isNotEmpty ? request.uri.path : '/',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
                 ],
               ),
               onTap: () {
@@ -195,9 +201,9 @@ class _DioFeature extends StatelessWidget {
                   return _DioDetails(request: request, response: response);
                 }));
               },
+              isThreeLine: true,
               subtitle: Text(
-                DateFormat('yyyy/MM/dd hh:mm:ss:S')
-                    .format(request.timestamp.toLocal()),
+                "${request.uri.host}\n${DateFormat('yyyy/MM/dd hh:mm:ss:S').format(request.timestamp.toLocal())}",
                 style: TextStyle(fontSize: 12),
                 overflow: TextOverflow.ellipsis,
               ),

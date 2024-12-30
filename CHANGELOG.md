@@ -1,3 +1,7 @@
+## 0.1.3
+
+* api host in list tile
+
 ## 0.1.2
 
 * handle nullable iad_id in dio.dart

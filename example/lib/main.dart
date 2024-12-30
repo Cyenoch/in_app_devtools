@@ -19,6 +19,7 @@ void main() {
   }, zoneSpecification: ZoneSpecification(
     print: (self, parent, zone, line) {
       logFeature.log(line);
+      parent.print(zone, line);
     },
   ));
 }
@@ -43,15 +44,15 @@ class MainApp extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  dio.get('https://www.baidu.com').then((value) {
+                  dio.get('https://pokeapi.co/api/v2/ability').then((value) {
                     print("?? $value");
                   });
 
-                  dio.post('https://www.baidu.com',
+                  dio.post('https://pokeapi.co/api/v2/ability',
                       data: {'test': 'map'}).then((value) {});
 
                   dio
-                      .post('https://www.baidu.com',
+                      .post('https://pokeapi.co/api/v2/ability',
                           data: FormData.fromMap({'form': 'data'}))
                       .then((value) {});
                 },
