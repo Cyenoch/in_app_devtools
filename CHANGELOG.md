@@ -1,3 +1,7 @@
+## 0.1.4
+
+* add copy button in log and fix copy button in dio
+
 ## 0.1.3
 
 * api host in list tile

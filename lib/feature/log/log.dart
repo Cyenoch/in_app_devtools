@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:in_app_devtools/abstract/feature.dart';
 import 'package:in_app_devtools/state.dart';
 import 'package:provider/provider.dart';
@@ -27,6 +28,10 @@ class LogFeature extends IADFeature {
   clear() {
     _logs.clear();
     notifyListeners();
+  }
+
+  copy() {
+    Clipboard.setData(ClipboardData(text: _logs.join('\n')));
   }
 
   @override
@@ -113,7 +118,7 @@ class _LogState extends State<_Log> {
               builder: (context, logs, child) {
                 return ListView.builder(
                   controller: _scrollController,
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8).copyWith(top: 28),
                   itemBuilder: (context, index) {
                     return Text(
                       logs[index].$2,
@@ -136,12 +141,25 @@ class _LogState extends State<_Log> {
               alignment: Alignment.topRight,
               child: Padding(
                 padding: const EdgeInsets.only(top: 4.0, right: 4.0),
-                child: ElevatedButton.icon(
-                  icon: Icon(Icons.clean_hands_outlined),
-                  label: Text("Clear"),
-                  onPressed: () {
-                    context.read<LogFeature>().clear();
-                  },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  spacing: 4,
+                  children: [
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.clean_hands_outlined),
+                      label: Text("Clear"),
+                      onPressed: () {
+                        context.read<LogFeature>().clear();
+                      },
+                    ),
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.copy),
+                      label: Text("Copy"),
+                      onPressed: () {
+                        context.read<LogFeature>().copy();
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),

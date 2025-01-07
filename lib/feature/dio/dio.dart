@@ -306,19 +306,7 @@ class _DioDetails extends StatelessWidget {
                     Spacer(),
                     ElevatedButton(
                       onPressed: () {
-                        Clipboard.setData(
-                          ClipboardData(
-                            text: request.data.toString(),
-                          ),
-                        ).then((_) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Copied to clipboard'),
-                              ),
-                            );
-                          }
-                        });
+                        copy(context, request.data);
                       },
                       child: Text("Copy"),
                     )
@@ -361,19 +349,7 @@ class _DioDetails extends StatelessWidget {
                     Spacer(),
                     ElevatedButton(
                       onPressed: () {
-                        Clipboard.setData(
-                          ClipboardData(
-                            text: response?.data.toString() ?? '',
-                          ),
-                        ).then((_) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Copied to clipboard'),
-                              ),
-                            );
-                          }
-                        });
+                        copy(context, response?.data);
                       },
                       child: Text("Copy"),
                     )
@@ -419,6 +395,38 @@ class _DioDetails extends StatelessWidget {
             },
             shrinkWrap: true,
           );
+  }
+
+  void copy(BuildContext context, dynamic data) {
+    var text = '';
+    switch (data) {
+      case null:
+        text = 'NULL';
+        break;
+      case String data:
+        text = data;
+        break;
+      case Map map:
+        text = JsonEncoder.withIndent('  ').convert(map);
+        break;
+      case FormData data:
+        final fields = data.fields;
+        final map = Map.fromEntries(fields);
+        text = JsonEncoder.withIndent('  ').convert(map);
+        break;
+      default:
+        text = data.toString();
+        break;
+    }
+    Clipboard.setData(ClipboardData(text: text)).then((_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Copied to clipboard'),
+          ),
+        );
+      }
+    });
   }
 
   Widget _bodyRender(BuildContext context, dynamic body) {
