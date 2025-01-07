@@ -31,7 +31,7 @@ class LogFeature extends IADFeature {
   }
 
   copy() {
-    Clipboard.setData(ClipboardData(text: _logs.join('\n')));
+    Clipboard.setData(ClipboardData(text: _logs.map((e) => e.$2).join('\n')));
   }
 
   @override
