@@ -89,10 +89,12 @@ class _IADWindowState extends State<IADWindow>
               return Container(
                 clipBehavior: Clip.antiAliasWithSaveLayer,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey.shade300,
-                    strokeAlign: BorderSide.strokeAlignCenter,
-                  ),
+                  border: 1 - _animationCtrl.value == 0
+                      ? null
+                      : Border.all(
+                          color: Colors.grey.shade300,
+                          strokeAlign: BorderSide.strokeAlignCenter,
+                        ),
                   borderRadius:
                       BorderRadius.circular(8 + (_animationCtrl.value * 200)),
                 ),
